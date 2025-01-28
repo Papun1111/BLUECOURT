@@ -116,7 +116,7 @@ const updateUser = async (req, res) => {
         user.coverImg = coverImg || user.coverImg;
         
         user = await user.save();
-        user.password = null;  // Ensure password is not sent in the response
+        user.password = null;  
 
         res.status(200).json(user);
     } catch (error) {
