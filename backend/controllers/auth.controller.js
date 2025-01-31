@@ -49,23 +49,38 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const user = await userModel.findOne({ username });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+	try {
+		const { username, password } = req.body;
+		const user = await userModel.findOne({ username });
 
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
-        if (!isPasswordCorrect) {
-            return res.status(400).json({ error: "Invalid username or password" });
-        }
+		// Check password only if user exists to prevent unnecessary bcrypt computation
+		if (!user) {
+			return res.status(400).json({ error: "Invalid username or password" });
+		}
 
-        generateTokenAndSetCookie(user._id, res);
-        res.status(200).json({ message: "Logged in successfully" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+		const isPasswordCorrect = await bcrypt.compare(password, user.password);
+		if (!isPasswordCorrect) {
+			return res.status(400).json({ error: "Invalid username or password" });
+		}
+
+		// Assuming generateTokenAndSetCookie correctly sets the cookie
+		generateTokenAndSetCookie(user._id, res);
+
+		// Sending user details back to client
+		res.status(200).json({
+			_id: user._id,
+			fullName: user.fullName,
+			username: user.username,
+			email: user.email,
+			followers: user.followers,
+			following: user.following,
+			profileImg: user.profileImg,
+			coverImg: user.coverImg,
+		});
+	} catch (error) {
+		console.log("Error in login controller", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 };
 
 const logout = async (req, res) => {

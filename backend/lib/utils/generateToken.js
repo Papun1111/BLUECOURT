@@ -1,15 +1,13 @@
 import jwt from 'jsonwebtoken';
 
 export const generateTokenAndSetCookie = (userId, res) => {
-    if (!process.env.JWT_SECRET) {
-        console.error('JWT_SECRET is not defined.');
-        return;
-    }
-
-    const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15d' });
-    res.cookie('jwt', token, {
-        maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const cookieOptions = {
         httpOnly: true,
-        sameSite: 'strict'
-    });
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
+        sameSite: 'None', // Important for cross-site access
+        secure: true // Cookies must be sent over https
+    };
+
+    res.cookie('jwt', token, cookieOptions);
 };

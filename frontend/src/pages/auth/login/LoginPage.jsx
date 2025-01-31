@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
+// Import your SVG and icons
 import XSvg from "../../../components/svgs/X";
-
 import { MdOutlineMail, MdPassword } from "react-icons/md";
 
 const LoginPage = () => {
@@ -11,16 +13,49 @@ const LoginPage = () => {
     password: "",
   });
 
+  const navigate = useNavigate();
+
+  const { mutate, isLoading, isError, error } = useMutation({
+    mutationFn: async ({ username, password }) => {
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: 'include', // Ensure cookies are included with the request
+          body: JSON.stringify({ username, password })
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Something went wrong during login");
+        }
+        return response.json();
+      } catch (error) {
+        throw error; // This will be caught by onError
+      }
+    },
+    onSuccess: () => {
+      toast.success("Logged in successfully!");
+      navigate('/'); // Navigate to the homepage or dashboard
+    },
+    onError: (error) => {
+      toast.error(error.message || "An error occurred during login.");
+    }
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+    mutate(formData); // Trigger the mutation
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
-  const isError = false;
 
   return (
     <div className="w-full h-screen flex animate-fadeIn">
@@ -34,7 +69,7 @@ const LoginPage = () => {
         >
           <XSvg className="w-24 lg:hidden fill-current text-blue-500" />
           <h1 className="text-4xl font-extrabold text-blue-900">
-            {"Let's"} go.
+            {"Let's go."}
           </h1>
           <div className="space-y-4">
             <label className="flex items-center gap-2 border p-3 rounded-lg border-blue-500 hover:border-blue-700 transition duration-300">
@@ -60,15 +95,21 @@ const LoginPage = () => {
               />
             </label>
           </div>
-          <button className="w-full py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-300">
-            Login
+          <button
+            type="submit"
+            className="w-full py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-300"
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Login"}
           </button>
           {isError && (
-            <p className="text-red-500 text-center">Something went wrong</p>
+            <p className="text-red-500 text-center">
+              {error?.message || "Something went wrong"}
+            </p>
           )}
         </form>
         <div className="mt-4 text-white">
-          <p>{"Don't"} have an account?</p>
+          <p>{"Don't have an account?"}</p>
           <Link to="/signup">
             <button className="w-full py-3 mt-2 text-blue-600 bg-transparent border border-blue-600 rounded-lg hover:bg-blue-700 hover:text-white transition duration-300">
               Sign up

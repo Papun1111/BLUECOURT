@@ -5,8 +5,32 @@ import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const Sidebar = () => {
+    const { mutate, isPending } = useMutation({
+        mutationFn: async () => {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Something went wrong");
+            }
+            return response.json();
+        },
+        onSuccess: () => {
+            toast.success("Logged out successfully!");
+        },
+        onError: (error) => {
+            toast.error(error.message || "Failed to log out.");
+        }
+    });
+
     const data = {
         fullName: "John Doe",
         username: "johndoe",
@@ -53,6 +77,10 @@ const Sidebar = () => {
                     <Link
                         to={`/profile/${data.username}`}
                         className='mt-auto mb-10 flex gap-2 items-start transition-all duration-300 hover:bg-blue-800 py-2 px-4 rounded-full'
+                        onClick={(e) => {
+                            e.preventDefault(); // Prevent navigation
+                            mutate(); // Trigger logout mutation
+                        }}
                     >
                         <div className='avatar hidden md:inline-flex'>
                             <div className='w-8 rounded-full'>
