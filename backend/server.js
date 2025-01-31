@@ -8,6 +8,7 @@ import userRouter from "./routes/users.routes.js";
 import postRouter from "./routes/post.routes.js";
 import cookieParser from "cookie-parser";
 import notificationRouter from "./routes/notification.routes.js";
+import cors from "cors";
 dotenv.config();
 cloudinary.config({
   cloud_name:process.env.CLOUD_NAME,
@@ -29,6 +30,7 @@ console.log("DB CONNECTED!");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors());
 app.use("/api/auth",authRoutes);
 app.use("/api/user",userRouter);
 app.use("/api/posts",postRouter);

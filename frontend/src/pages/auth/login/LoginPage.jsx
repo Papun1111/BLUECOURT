@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-// Import your SVG and icons
+
 import XSvg from "../../../components/svgs/X";
 import { MdOutlineMail, MdPassword } from "react-icons/md";
 
@@ -13,18 +13,18 @@ const LoginPage = () => {
     password: "",
   });
 
-  const navigate = useNavigate();
-
+  const navigate = useNavigate(); 
+  const queryClient = useQueryClient();
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
       try {
         const response = await fetch("/api/auth/login", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          credentials: 'include', // Ensure cookies are included with the request
-          body: JSON.stringify({ username, password })
+          credentials: "include", // Ensure cookies are included with the request
+          body: JSON.stringify({ username, password }),
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -32,28 +32,30 @@ const LoginPage = () => {
         }
         return response.json();
       } catch (error) {
-        throw error; // This will be caught by onError
+        throw error;
       }
     },
     onSuccess: () => {
       toast.success("Logged in successfully!");
-      navigate('/'); // Navigate to the homepage or dashboard
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      navigate('/'); // Navigate to the homepage on successful login
+
     },
     onError: (error) => {
       toast.error(error.message || "An error occurred during login.");
-    }
+    },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutate(formData); // Trigger the mutation
+    mutate(formData);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -68,7 +70,7 @@ const LoginPage = () => {
           onSubmit={handleSubmit}
         >
           <XSvg className="w-24 lg:hidden fill-current text-blue-500" />
-          <h1 className="text-4xl font-extrabold text-blue-900">
+          <h1 className="text-4xl font-bold text-blue-900">
             {"Let's go."}
           </h1>
           <div className="space-y-4">
@@ -81,6 +83,7 @@ const LoginPage = () => {
                 name="username"
                 onChange={handleInputChange}
                 value={formData.username}
+                required
               />
             </label>
             <label className="flex items-center gap-2 border p-3 rounded-lg border-blue-500 hover:border-blue-700 transition duration-300">
@@ -92,6 +95,7 @@ const LoginPage = () => {
                 name="password"
                 onChange={handleInputChange}
                 value={formData.password}
+                required
               />
             </label>
           </div>

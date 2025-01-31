@@ -3,12 +3,14 @@ import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-
+import { QueryClient } from "@tanstack/react-query";
 const Sidebar = () => {
+    const navigate=useNavigate();
+    const queryClient = useQueryClient();
     const { mutate, isPending } = useMutation({
         mutationFn: async () => {
             const response = await fetch("/api/auth/logout", {
@@ -25,6 +27,7 @@ const Sidebar = () => {
         },
         onSuccess: () => {
             toast.success("Logged out successfully!");
+            queryClient.invalidateQueries({ queryKey: ["authUser"] });
         },
         onError: (error) => {
             toast.error(error.message || "Failed to log out.");

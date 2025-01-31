@@ -1,16 +1,11 @@
-import { Link } from "react-router-dom";
 import { useState } from "react";
-
-import XSvg from "../../../components/svgs/X";
-
-import {
-  MdOutlineMail,
-  MdPassword,
-  MdDriveFileRenameOutline,
-} from "react-icons/md";
-import { FaUser } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+
+import XSvg from "../../../components/svgs/X";
+import { MdOutlineMail, MdPassword, MdDriveFileRenameOutline } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +15,7 @@ const SignUpPage = () => {
     password: "",
   });
 
-  const { mutate, isError, isLoading } = useMutation({
+  const { mutate, isError, error, isLoading } = useMutation({
     mutationFn: async (userData) => {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
@@ -30,28 +25,25 @@ const SignUpPage = () => {
         body: JSON.stringify(userData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Could not sign up, please try again."
-        );
+        throw new Error(data.message || "Could not sign up, please try again.");
       }
 
-      return response.json();
+      return data;
     },
     onSuccess: (data) => {
-      // Reset the form data after successful sign up
+      // Assuming you want to navigate or clear form here
       setFormData({
         email: "",
         username: "",
         fullName: "",
         password: "",
       });
-      // Handle success logic here, e.g., navigating to another page or showing a success message
-      toast.success("Signed up successfully!");
+      toast.success("Signed up successfully! Please check your email to confirm.");
     },
     onError: (error) => {
-      // You can handle error here or in the form directly using `isError` state
       toast.error(error.message);
     },
   });
@@ -62,7 +54,8 @@ const SignUpPage = () => {
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -76,9 +69,7 @@ const SignUpPage = () => {
           onSubmit={handleSubmit}
         >
           <XSvg className="w-24 mx-auto lg:hidden" />
-          <h1 className="text-3xl font-bold text-center text-gray-800">
-            Join today.
-          </h1>
+          <h1 className="text-3xl font-bold text-center text-gray-800">Join today.</h1>
           <div className="flex items-center gap-2 border border-gray-300 rounded p-2">
             <MdOutlineMail className="text-gray-500" />
             <input
@@ -88,6 +79,7 @@ const SignUpPage = () => {
               name="email"
               onChange={handleInputChange}
               value={formData.email}
+              required
             />
           </div>
           <div className="flex gap-4">
@@ -100,6 +92,7 @@ const SignUpPage = () => {
                 name="username"
                 onChange={handleInputChange}
                 value={formData.username}
+                required
               />
             </div>
             <div className="flex items-center gap-2 border border-gray-300 rounded p-2 flex-1">
@@ -111,6 +104,7 @@ const SignUpPage = () => {
                 name="fullName"
                 onChange={handleInputChange}
                 value={formData.fullName}
+                required
               />
             </div>
           </div>
@@ -123,6 +117,7 @@ const SignUpPage = () => {
               name="password"
               onChange={handleInputChange}
               value={formData.password}
+              required
             />
           </div>
           <button
@@ -132,8 +127,8 @@ const SignUpPage = () => {
             {isLoading ? "Signing Up..." : "Sign Up"}
           </button>
           {isError && (
-            <p className="text-red-500 text-center">
-              Something went wrong, please try again.
+            <p className="text-red-500 text-center mt-2">
+              {error.message || "Something went wrong, please try again."}
             </p>
           )}
         </form>
