@@ -4,6 +4,7 @@ import SignUpPage from './pages/auth/signup/SignUpPage'
 import LoginPage from './pages/auth/login/LoginPage'
 import HomePage from './pages/home/HomePage'
 import Sidebar from './components/common/Sidebar'
+import RightPanel from './components/common/RightPanel'
 const App = () => {
   return (
     <div className='flex max-w-7xl mx-auto'>
@@ -13,6 +14,7 @@ const App = () => {
         <Route path='/login' element={<LoginPage/>}/>
         <Route path='/signup' element={<SignUpPage/>}/>
       </Routes>
+      <RightPanel></RightPanel>
     </div>
   )
 }
