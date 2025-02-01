@@ -34,11 +34,18 @@ const Sidebar = () => {
         }
     });
 
-    const data = {
-        fullName: "John Doe",
-        username: "johndoe",
-        profileImg: "/avatars/boy1.png",
-    };
+    const { data } = useQuery({
+        queryKey: ["authUser"],
+        queryFn: async () => {
+            const response = await fetch("/api/auth/me");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Something went wrong");
+            }
+            return response.json();
+        },
+        retry: false,
+    });
 
     return (
         <div className='md:flex-[2_2_0] w-18 max-w-52'>
@@ -80,10 +87,7 @@ const Sidebar = () => {
                     <Link
                         to={`/profile/${data.username}`}
                         className='mt-auto mb-10 flex gap-2 items-start transition-all duration-300 hover:bg-blue-800 py-2 px-4 rounded-full'
-                        onClick={(e) => {
-                            e.preventDefault(); // Prevent navigation
-                            mutate(); // Trigger logout mutation
-                        }}
+                        
                     >
                         <div className='avatar hidden md:inline-flex'>
                             <div className='w-8 rounded-full'>
@@ -95,7 +99,10 @@ const Sidebar = () => {
                                 <p className='text-white font-bold text-sm w-20 truncate'>{data?.fullName}</p>
                                 <p className='text-slate-500 text-sm'>@{data?.username}</p>
                             </div>
-                            <BiLogOut className='w-5 h-5 text-blue-500 cursor-pointer' />
+                            <BiLogOut onClick={(e) => {
+                            e.preventDefault(); // Prevent navigation
+                            mutate(); // Trigger logout mutation
+                        }} className='w-5 h-5 text-blue-500 cursor-pointer' />
                         </div>
                     </Link>
                 )}
