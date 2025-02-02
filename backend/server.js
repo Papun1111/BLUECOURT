@@ -19,7 +19,7 @@ cloudinary.config({
 const __dirname = path.resolve();
 const url=process.env.MONGO_URL;
 const app = express();
-const port = process.env.PORT || 8080 ;
+const port = process.env.PORT || 5000 ;
 const connectDb=async()=>{
   try {
     await mongoose.connect(url);
