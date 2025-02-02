@@ -9,12 +9,12 @@ export default defineConfig({
      // Tailwind CSS plugin
   ],
   server:{
-    port:3000,
-    proxy:{
-      "/api":{
-        target:"https://bluecourtbackend.onrender.com",
-        changeOrigin:true
-      }
+    port: 3000,
+		proxy: {
+			"/api": {
+				target: "http://localhost:8080",
+				changeOrigin: true,
+			},
     }
   }
 });
