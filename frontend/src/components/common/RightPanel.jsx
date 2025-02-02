@@ -1,58 +1,87 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import useFollow from "../../hooks/useFollow";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
-import { USERS_FOR_RIGHT_PANEL } from "../../utils/db/dummy";
+import LoadingSpinner from "./LoadingSpinner";
 
 const RightPanel = () => {
-    const isLoading = false;
+  const { data: suggestedUsers, isLoading } = useQuery({
+    queryKey: ["suggestedUsers"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/user/suggested");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Something went wrong!");
+        return data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+  });
 
-    return (
-        <div className='hidden lg:block my-4 mx-2'>
-            <div className='bg-[#16181C] p-4 rounded-md sticky top-2 transition-all duration-300 ease-in-out'>
-                <p className='font-bold text-white'>Who to follow</p>
-                <div className='flex flex-col gap-4'>
-                    {/* Loading Skeleton */}
-                    {isLoading && (
-                        <>
-                            <RightPanelSkeleton />
-                            <RightPanelSkeleton />
-                            <RightPanelSkeleton />
-                            <RightPanelSkeleton />
-                        </>
-                    )}
-                    {/* User list */}
-                    {!isLoading &&
-                        USERS_FOR_RIGHT_PANEL?.map((user) => (
-                            <Link
-                                to={`/profile/${user.username}`}
-                                className='flex items-center justify-between gap-4 p-2 hover:bg-blue-800 rounded-md transition-all duration-300'
-                                key={user._id}
-                            >
-                                <div className='flex gap-2 items-center'>
-                                    <div className='avatar'>
-                                        <div className='w-8 h-8 rounded-full'>
-                                            <img src={user.profileImg || "/avatar-placeholder.png"} alt="User" />
-                                        </div>
-                                    </div>
-                                    <div className='flex flex-col'>
-                                        <span className='font-semibold tracking-tight truncate w-28 text-blue-200'>
-                                            {user.fullName}
-                                        </span>
-                                        <span className='text-sm text-blue-300'>@{user.username}</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <button
-                                        className='bg-blue-500 text-white hover:bg-blue-600 rounded-full btn-sm px-4 py-1 transition-colors duration-300 ease-in-out'
-                                        onClick={(e) => e.preventDefault()}
-                                    >
-                                        Follow
-                                    </button>
-                                </div>
-                            </Link>
-                        ))}
+  const { follow, isPending } = useFollow();
+
+  if (suggestedUsers?.length === 0) return <div className="md:w-64 w-0"></div>;
+
+  return (
+    <div className="hidden lg:block my-4 mx-2 min-w-[300px]">
+      <div className="bg-gray-900 p-4 rounded-xl shadow-xl sticky top-2 border border-gray-700 transition-all duration-300">
+        <h2 className="text-xl font-bold mb-4 text-white">Who to follow</h2>
+        <div className="space-y-3">
+          {isLoading ? (
+            <>
+              <RightPanelSkeleton />
+              <RightPanelSkeleton />
+              <RightPanelSkeleton />
+              <RightPanelSkeleton />
+            </>
+          ) : (
+            suggestedUsers?.map((user) => (
+              <Link
+                to={`/profile/${user.username}`}
+                className="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition-all duration-200 ease-out hover:scale-[1.02]"
+                key={user._id}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-600 group-hover:border-blue-400 transition-colors">
+                    <img
+                      src={user.profileImg || "/avatar-placeholder.png"}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-sm text-white truncate max-w-[120px]">
+                      {user.fullName}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      @{user.username}
+                    </span>
+                  </div>
                 </div>
-            </div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    follow(user._id);
+                  }}
+                  className="px-4 py-1.5 text-sm font-medium bg-white text-gray-900 rounded-full hover:bg-opacity-90 
+                           transition-all duration-200 transform hover:scale-105 active:scale-95 
+                           disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    <span className="flex items-center gap-1">Follow</span>
+                  )}
+                </button>
+              </Link>
+            ))
+          )}
         </div>
-    );
+      </div>
+    </div>
+  );
 };
+
 export default RightPanel;

@@ -68,24 +68,34 @@ const followUnfollowUser = async (req, res) => {
 };
 
 const getSuggestedUsers = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const userFollowedByMe = await userModel
-      .findById(userId)
-      .select("following -_id");
-    const users = await userModel
-      .find({
-        _id: { $nin: [...userFollowedByMe.following, userId] },
-      })
-      .limit(10);
+	try {
+    
+		const userId = req.user._id;
 
-    users.forEach((user) => (user.password = null));
-    res.status(200).json(users.slice(0, 4));
-  } catch (error) {
-    console.log("Error in getSuggestedUsers: ", error.message);
-    res.status(500).json({ error: error.message });
-  }
+		const usersFollowedByMe = await userModel.findById(userId).select("following");
+
+		const users = await userModel.aggregate([
+			{
+				$match: {
+					_id: { $ne: userId },
+				},
+			},
+			{ $sample: { size: 10 } },
+		]);
+
+		
+		const filteredUsers = users.filter((user) => !usersFollowedByMe.following.includes(user._id));
+		const suggestedUsers = filteredUsers.slice(0, 4);
+   
+		suggestedUsers.forEach((user) => (user.password = null));
+
+		res.status(200).json(suggestedUsers);
+	} catch (error) {
+		console.log("Error in getSuggestedUsers: ", error.message);
+		res.status(500).json({ error: error.message });
+	}
 };
+
 
 const updateUser = async (req, res) => {
   const { fullName, email, username, currentPassword, newPassword, bio, link } =

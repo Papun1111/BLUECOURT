@@ -25,9 +25,7 @@ const Post = ({ post }) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.setQueryData(["posts"], (oldPosts) => 
-        oldPosts.filter(p => p._id !== post._id)
-      );
+      queryClient.invalidateQueries(["posts"]);
       toast.success("Post deleted successfully");
     },
     onError: (error) => toast.error(error.message),
@@ -39,14 +37,11 @@ const Post = ({ post }) => {
       const res = await fetch(`/api/posts/like/${post._id}`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to like post");
-      return data;
+      return data.likes; // Assuming backend returns { likes: updatedLikesArray }
     },
-    onSuccess: (updatedLikes) => {
-      queryClient.setQueryData(["posts"], (oldPosts) => 
-        oldPosts.map(p => 
-          p._id === post._id ? { ...p, likes: updatedLikes } : p
-        )
-      );
+    onSuccess: () => {
+    toast.success(isLiked ? "Post unliked" : "Post liked");  
+      queryClient.invalidateQueries(["posts"]);
     },
     onError: (error) => toast.error(error.message),
   });
