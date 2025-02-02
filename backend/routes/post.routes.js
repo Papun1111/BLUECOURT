@@ -10,12 +10,7 @@ postRouter.get("/all", protectRoute, getAllPosts);
 postRouter.get("/following", protectRoute, getFollowingPosts);
 postRouter.get("/likes:/id", protectRoute, getLikedPosts);
 postRouter.get("/user/:username", protectRoute, getUserPosts);
-postRouter.post(
-    "/create",
-    protectRoute,
-    upload.single('img'),
-    createPost
-);
+postRouter.post("/create", protectRoute, createPost);
 
 postRouter.post("/like/:id", protectRoute, likeUnlikePost);
 postRouter.post("/comment/:id", protectRoute, commentOnPost);
