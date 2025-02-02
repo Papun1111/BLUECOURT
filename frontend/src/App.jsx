@@ -43,7 +43,7 @@ function App() {
 	}
 
 	return (
-		<div className='flex max-w-full mx-auto'>
+		<div className='flex max-w-full mx-auto bg-black'>
 			{/* Common component, bc it's not wrapped with Routes */}
 		<Sidebar />
 			<Routes>

@@ -27,8 +27,8 @@ console.log("DB CONNECTED!");
   }
 
 }
-app.use(express.json({ limit: '50mb' })); // Increase JSON payload limit
-app.use(express.urlencoded({ limit: '50mb', extended: true })); // For URL-encoded data
+app.use(express.json({ limit: '50mb' })); 
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 app.use(cors());
 app.use("/api/auth",authRoutes);

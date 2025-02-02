@@ -12,7 +12,7 @@ const HomePage = () => {
                 {/* Header */}
                 <div className='flex w-full border-b border-gray-700'>
                     <div
-                        className={`flex justify-center flex-1 p-3 hover:bg-blue-200 transition duration-300 cursor-pointer relative ${
+                        className={`flex  justify-center flex-1 p-3 hover:bg-blue-200 transition duration-300 cursor-pointer relative ${
                             feedType === "forYou" ? "bg-blue-100" : ""
                         }`}
                         onClick={() => setFeedType("forYou")}
