@@ -1,11 +1,15 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import XSvg from "../../../components/svgs/X";
+// Icons
 import { MdOutlineMail, MdPassword, MdDriveFileRenameOutline } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
+
+// Custom Logo
+import XSvg from "../../../components/svgs/X";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -19,22 +23,17 @@ const SignUpPage = () => {
     mutationFn: async (userData) => {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
-
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Could not sign up, please try again.");
       }
-
       return data;
     },
-    onSuccess: (data) => {
-      // Assuming you want to navigate or clear form here
+    onSuccess: () => {
       setFormData({
         email: "",
         username: "",
@@ -43,8 +42,8 @@ const SignUpPage = () => {
       });
       toast.success("Signed up successfully! Please check your email to confirm.");
     },
-    onError: (error) => {
-      toast.error(error.message);
+    onError: (err) => {
+      toast.error(err.message);
     },
   });
 
@@ -58,89 +57,156 @@ const SignUpPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Framer Motion variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen items-center justify-center bg-gray-100">
-      <div className="hidden lg:flex flex-1 items-center justify-center">
-        <XSvg className="w-2/3" />
-      </div>
-      <div className="flex-1 flex flex-col justify-center items-center px-6 lg:px-10">
-        <form
-          className="w-full max-w-lg space-y-6 bg-white p-8 shadow-lg rounded-lg"
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Left Section (Graphic) - Shown on md+ screens */}
+      <motion.div
+        className="hidden lg:flex flex-1 items-center justify-center bg-blue-900 dark:bg-gray-800"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <XSvg className="w-2/3 fill-current text-white" />
+      </motion.div>
+
+      {/* Right Section (Sign-up Form) */}
+      <motion.div
+        className="flex-1 flex flex-col items-center justify-center bg-blue-50 dark:bg-gray-900 p-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.form
+          className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-blue-200 dark:border-gray-700"
           onSubmit={handleSubmit}
+          variants={itemVariants}
         >
-          <XSvg className="w-24 mx-auto lg:hidden" />
-          <h1 className="text-3xl font-bold text-center text-gray-800">Join today.</h1>
-          <div className="flex items-center gap-2 border border-gray-300 rounded p-2">
-            <MdOutlineMail className="text-gray-500" />
+          {/* Logo for smaller screens */}
+          <div className="flex justify-center lg:hidden">
+            <XSvg className="w-20 fill-current text-blue-500 dark:text-blue-300" />
+          </div>
+          <motion.h1
+            className="text-3xl md:text-4xl font-bold text-blue-900 dark:text-blue-200 text-center"
+            variants={itemVariants}
+          >
+            Join today.
+          </motion.h1>
+
+          {/* Email */}
+          <motion.label
+            className="flex items-center gap-3 p-3 border rounded-lg border-blue-500 hover:border-blue-700 dark:border-blue-400 dark:hover:border-blue-200 transition duration-300"
+            variants={itemVariants}
+          >
+            <MdOutlineMail className="text-2xl text-blue-500 dark:text-blue-300" />
             <input
               type="email"
-              className="w-full focus:outline-none"
+              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
               placeholder="Email"
               name="email"
               onChange={handleInputChange}
               value={formData.email}
               required
             />
-          </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2 border border-gray-300 rounded p-2 flex-1">
-              <FaUser className="text-gray-500" />
+          </motion.label>
+
+          {/* Username & Full Name */}
+          <div className="flex flex-col gap-4 md:flex-row">
+            <motion.label
+              className="flex items-center gap-3 p-3 border rounded-lg border-blue-500 hover:border-blue-700 dark:border-blue-400 dark:hover:border-blue-200 transition duration-300 w-full"
+              variants={itemVariants}
+            >
+              <FaUser className="text-2xl text-blue-500 dark:text-blue-300" />
               <input
                 type="text"
-                className="w-full focus:outline-none"
+                className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
                 placeholder="Username"
                 name="username"
                 onChange={handleInputChange}
                 value={formData.username}
                 required
               />
-            </div>
-            <div className="flex items-center gap-2 border border-gray-300 rounded p-2 flex-1">
-              <MdDriveFileRenameOutline className="text-gray-500" />
+            </motion.label>
+            <motion.label
+              className="flex items-center gap-3 p-3 border rounded-lg border-blue-500 hover:border-blue-700 dark:border-blue-400 dark:hover:border-blue-200 transition duration-300 w-full"
+              variants={itemVariants}
+            >
+              <MdDriveFileRenameOutline className="text-2xl text-blue-500 dark:text-blue-300" />
               <input
                 type="text"
-                className="w-full focus:outline-none"
+                className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
                 placeholder="Full Name"
                 name="fullName"
                 onChange={handleInputChange}
                 value={formData.fullName}
                 required
               />
-            </div>
+            </motion.label>
           </div>
-          <div className="flex items-center gap-2 border border-gray-300 rounded p-2">
-            <MdPassword className="text-gray-500" />
+
+          {/* Password */}
+          <motion.label
+            className="flex items-center gap-3 p-3 border rounded-lg border-blue-500 hover:border-blue-700 dark:border-blue-400 dark:hover:border-blue-200 transition duration-300"
+            variants={itemVariants}
+          >
+            <MdPassword className="text-2xl text-blue-500 dark:text-blue-300" />
             <input
               type="password"
-              className="w-full focus:outline-none"
+              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
               placeholder="Password"
               name="password"
               onChange={handleInputChange}
               value={formData.password}
               required
             />
-          </div>
-          <button
+          </motion.label>
+
+          {/* Submit Button */}
+          <motion.button
             type="submit"
-            className="w-full text-white bg-blue-500 hover:bg-blue-600 rounded-full py-2 font-semibold transition duration-200 ease-in-out transform hover:scale-105"
+            className="w-full py-3 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition duration-300"
+            disabled={isLoading}
+            variants={itemVariants}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             {isLoading ? "Signing Up..." : "Sign Up"}
-          </button>
+          </motion.button>
+
           {isError && (
-            <p className="text-red-500 text-center mt-2">
-              {error.message || "Something went wrong, please try again."}
-            </p>
+            <motion.p className="text-red-500 text-center" variants={itemVariants}>
+              {error?.message || "Something went wrong, please try again."}
+            </motion.p>
           )}
-        </form>
-        <div className="mt-6 flex flex-col items-center w-full max-w-lg">
-          <p className="text-gray-700">Already have an account?</p>
+        </motion.form>
+
+        {/* Already have an account */}
+        <motion.div className="mt-6 text-center" variants={itemVariants}>
+          <p className="text-blue-900 dark:text-blue-200">Already have an account?</p>
           <Link to="/login">
-            <button className="w-full text-blue-500 hover:text-blue-600 border border-blue-500 hover:border-blue-600 rounded-full py-2 mt-4 transition duration-200 ease-in-out">
+            <motion.button
+              className="mt-2 py-3 px-6 text-blue-600 dark:text-blue-400 bg-transparent border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-700 hover:text-white dark:hover:bg-blue-500 dark:hover:text-white transition duration-300"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
               Sign in
-            </button>
+            </motion.button>
           </Link>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

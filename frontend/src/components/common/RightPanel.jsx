@@ -25,8 +25,10 @@ const RightPanel = () => {
 
   return (
     <div className="hidden lg:block my-4 mx-2 min-w-[300px]">
-      <div className="bg-gray-900 p-4 rounded-xl shadow-xl sticky top-2 border border-gray-700 transition-all duration-300">
-        <h2 className="text-xl font-bold mb-4 text-white">Who to follow</h2>
+      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl shadow-lg sticky top-2 border border-gray-200 dark:border-gray-700 transition-all duration-300">
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+          Who to follow
+        </h2>
         <div className="space-y-3">
           {isLoading ? (
             <>
@@ -39,11 +41,11 @@ const RightPanel = () => {
             suggestedUsers?.map((user) => (
               <Link
                 to={`/profile/${user.username}`}
-                className="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition-all duration-200 ease-out hover:scale-[1.02]"
+                className="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 ease-out hover:scale-[1.02]"
                 key={user._id}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-600 group-hover:border-blue-400 transition-colors">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600 group-hover:border-blue-400 transition-colors">
                     <img
                       src={user.profileImg || "/avatar-placeholder.png"}
                       alt="Profile"
@@ -51,10 +53,10 @@ const RightPanel = () => {
                     />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-sm text-white truncate max-w-[120px]">
+                    <span className="font-semibold text-sm text-gray-900 dark:text-white truncate max-w-[120px]">
                       {user.fullName}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       @{user.username}
                     </span>
                   </div>
@@ -64,9 +66,9 @@ const RightPanel = () => {
                     e.preventDefault();
                     follow(user._id);
                   }}
-                  className="px-4 py-1.5 text-sm font-medium bg-white text-gray-900 rounded-full hover:bg-opacity-90 
-                           transition-all duration-200 transform hover:scale-105 active:scale-95 
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-1.5 text-sm font-medium bg-gray-900 dark:bg-gray-100 text-gray-100 dark:text-gray-900 rounded-full 
+                           hover:bg-gray-800 dark:hover:bg-gray-200 transition-all duration-200 transform 
+                           hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isPending}
                 >
                   {isPending ? (
