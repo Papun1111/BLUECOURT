@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { backend_url } from "../../../config";
+
 // Icons
 import { MdOutlineMail, MdPassword } from "react-icons/md";
 
@@ -14,7 +14,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
       const response = await fetch(`${backend_url}/api/auth/login`, {
