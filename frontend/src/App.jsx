@@ -9,13 +9,14 @@ import RightPanel from "./components/common/RightPanel";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/common/LoadingSpinner";
+import backend_url from "./config";
 
 function App() {
   const { data: authUser, isLoading } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch(`${backend_url}/api/auth/me`);
         const data = await res.json();
         if (data.error) return null;
         if (!res.ok) {

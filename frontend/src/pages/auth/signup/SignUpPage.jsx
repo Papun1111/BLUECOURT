@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-
+import backend_url from "../../../config";
 // Icons
 import { MdOutlineMail, MdPassword, MdDriveFileRenameOutline } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
@@ -21,7 +21,7 @@ const SignUpPage = () => {
 
   const { mutate, isError, error, isLoading } = useMutation({
     mutationFn: async (userData) => {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch(`${backend_url}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
