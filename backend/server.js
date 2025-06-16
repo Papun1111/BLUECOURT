@@ -19,6 +19,8 @@ cloudinary.config({
 const __dirname = path.resolve();
 const url=process.env.MONGO_URL;
 const app = express();
+app.use(express.json());
+app.use(cors());
 const port = process.env.PORT || 8000 ;
 const connectDb=async()=>{
   try {

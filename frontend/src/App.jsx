@@ -12,7 +12,9 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 import backend_url from "./config";
 
 function App() {
+  console.log(backend_url);
   const { data: authUser, isLoading } = useQuery({
+
     queryKey: ["authUser"],
     queryFn: async () => {
       try {
