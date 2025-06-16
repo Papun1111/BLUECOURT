@@ -25,17 +25,25 @@ const ProfilePage = () => {
   const { username } = useParams();
   const { follow, isPending } = useFollow();
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
-const backend_url = import.meta.env.VITE_BACKEND_URL;
-  const {
-    data: user,
-    isLoading,
-    isError,
-    refetch,
-    isRefetching,
-  } = useQuery({
+  const { isUpdatingProfile, updateProfile } = useUpdateUserProfile();
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
+
+  const { data: user, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["userProfile", username],
     queryFn: async () => {
-      const res = await fetch(`${backend_url}/api/user/profile/${username}`);
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      };
+
+      const res = await fetch(
+        `${backend_url}/api/user/profile/${username}`,
+        {
+          headers,
+          credentials: "include",
+        }
+      );
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Something went wrong");
@@ -44,18 +52,14 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     },
   });
 
-  const { isUpdatingProfile, updateProfile } = useUpdateUserProfile();
-
   const isMyProfile = authUser?._id === user?._id;
   const memberSinceDate = formatMemberSinceDate(user?.createdAt);
   const amIFollowing = authUser?.following?.includes(user?._id);
 
-  // Load user data again whenever username changes
   useEffect(() => {
     refetch();
   }, [username, refetch]);
 
-  // Handle selected image files
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -67,24 +71,15 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     reader.readAsDataURL(file);
   };
 
-  // Framer Motion variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.05,
-      },
-    },
+    visible: { opacity: 1, y: 0, transition: { when: "beforeChildren", staggerChildren: 0.05 } },
   };
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
   };
 
-  // If error or user not found
   if (isError || (!isLoading && !isRefetching && !user)) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-300">
@@ -97,18 +92,13 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
 
   return (
     <motion.div
-      className="flex-1 border-r border-gray-200 dark:border-gray-800 
-                 min-h-screen bg-gradient-to-b from-gray-100 to-white 
-                 dark:from-gray-900 dark:to-black text-gray-900 
-                 dark:text-gray-100"
+      className="flex-1 border-r border-gray-200 dark:border-gray-800 min-h-screen bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-black text-gray-900 dark:text-gray-100"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Skeleton while loading */}
       {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
 
-      {/* Once loaded, animate the rest of the profile */}
       {user && !isLoading && !isRefetching && (
         <AnimatePresence>
           <motion.div variants={itemVariants} key={user._id}>
@@ -119,7 +109,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
               </Link>
               <div className="flex flex-col">
                 <p className="font-bold text-lg">{user.fullName}</p>
-                {/* Example "x posts" if you track user post count; using dummy data here */}
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   {POSTS?.length} posts
                 </span>
@@ -137,43 +126,23 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
               {isMyProfile && (
                 <motion.div
                   variants={itemVariants}
-                  className="absolute top-2 right-2 rounded-full p-2 bg-black bg-opacity-75 
-                             cursor-pointer opacity-0 group-hover/cover:opacity-100 
-                             transition duration-200 hover:bg-opacity-90"
+                  className="absolute top-2 right-2 rounded-full p-2 bg-black bg-opacity-75 cursor-pointer opacity-0 group-hover/cover:opacity-100 transition duration-200 hover:bg-opacity-90"
                   onClick={() => coverImgRef.current?.click()}
                 >
                   <MdEdit className="w-5 h-5 text-white" />
                 </motion.div>
               )}
 
-              {/* Hidden inputs for changing images */}
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                ref={coverImgRef}
-                onChange={(e) => handleImgChange(e, "coverImg")}
-              />
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                ref={profileImgRef}
-                onChange={(e) => handleImgChange(e, "profileImg")}
-              />
+              <input type="file" hidden accept="image/*" ref={coverImgRef} onChange={(e) => handleImgChange(e, "coverImg")} />
+              <input type="file" hidden accept="image/*" ref={profileImgRef} onChange={(e) => handleImgChange(e, "profileImg")} />
 
               {/* Profile Image */}
               <div className="avatar absolute -bottom-16 left-4">
                 <div className="w-32 rounded-full relative group/avatar ring-4 ring-gray-200 dark:ring-gray-900">
-                  <img
-                    src={profileImg || user.profileImg || "/avatar-placeholder.png"}
-                    alt={user.username}
-                  />
+                  <img src={profileImg || user.profileImg || "/avatar-placeholder.png"} alt={user.username} />
                   {isMyProfile && (
                     <div
-                      className="absolute top-5 right-3 p-1 bg-gray-800 rounded-full opacity-0 
-                                 group-hover/avatar:opacity-100 cursor-pointer 
-                                 hover:bg-gray-700 transition-all"
+                      className="absolute top-5 right-3 p-1 bg-gray-800 rounded-full opacity-0 group-hover/avatar:opacity-100 cursor-pointer hover:bg-gray-700 transition-all"
                       onClick={() => profileImgRef.current?.click()}
                     >
                       <MdEdit className="w-4 h-4 text-white" />
@@ -184,32 +153,20 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
             </div>
 
             {/* Profile Actions */}
-            <motion.div
-              className="flex justify-end px-4 mt-5"
-              variants={itemVariants}
-            >
+            <motion.div className="flex justify-end px-4 mt-5" variants={itemVariants}>
               {isMyProfile && <EditProfileModal authUser={authUser} />}
               {!isMyProfile && (
                 <button
-                  className="px-6 py-2 rounded-full text-sm font-medium 
-                             border border-gray-400 dark:border-gray-600 
-                             hover:bg-gray-200 dark:hover:bg-gray-800 
-                             transition-colors text-gray-700 dark:text-gray-300"
+                  className="px-6 py-2 rounded-full text-sm font-medium border border-gray-400 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
                   onClick={() => follow(user._id)}
                   disabled={isPending}
                 >
-                  {isPending
-                    ? "Loading..."
-                    : amIFollowing
-                    ? "Unfollow"
-                    : "Follow"}
+                  {isPending ? "Loading..." : amIFollowing ? "Unfollow" : "Follow"}
                 </button>
               )}
               {(coverImg || profileImg) && (
                 <button
-                  className="px-6 py-2 rounded-full text-sm font-medium 
-                             bg-gray-800 text-white ml-2 hover:bg-gray-700 
-                             transition-colors"
+                  className="px-6 py-2 rounded-full text-sm font-medium bg-gray-800 text-white ml-2 hover:bg-gray-700 transition-colors"
                   onClick={async () => {
                     await updateProfile({ coverImg, profileImg });
                     setProfileImg(null);
@@ -222,15 +179,10 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
             </motion.div>
 
             {/* User Info */}
-            <motion.div
-              className="flex flex-col gap-4 mt-14 px-4"
-              variants={itemVariants}
-            >
+            <motion.div className="flex flex-col gap-4 mt-14 px-4" variants={itemVariants}>
               <div>
                 <span className="font-bold text-lg">{user.fullName}</span>
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  @{user.username}
-                </span>
+                <span className="block text-sm text-gray-500 dark:text-gray-400">@{user.username}</span>
                 <span className="text-sm my-1">{user.bio}</span>
               </div>
 
@@ -238,12 +190,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
                 {user.link && (
                   <div className="flex gap-1 items-center">
                     <FaLink className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                    <a
-                      href={user.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
+                    <a href={user.link} target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
                       {user.link}
                     </a>
                   </div>
@@ -257,29 +204,20 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
               <div className="flex gap-4">
                 <div className="flex gap-1 items-center">
                   <span className="font-bold">{user.following.length}</span>
-                  <span className="text-gray-500 dark:text-gray-400 text-sm">
-                    Following
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">Following</span>
                 </div>
                 <div className="flex gap-1 items-center">
                   <span className="font-bold">{user.followers.length}</span>
-                  <span className="text-gray-500 dark:text-gray-400 text-sm">
-                    Followers
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">Followers</span>
                 </div>
               </div>
             </motion.div>
 
-            {/* Tabs: Posts / Likes */}
-            <motion.div
-              className="flex w-full border-b border-gray-200 dark:border-gray-800 mt-4"
-              variants={itemVariants}
-            >
+            {/* Tabs */}
+            <motion.div className="flex w-full border-b border-gray-200 dark:border-gray-800 mt-4" variants={itemVariants}>
               <div
                 className={`flex justify-center flex-1 p-3 cursor-pointer transition-colors ${
-                  feedType === "posts"
-                    ? "text-black dark:text-white border-b-2 border-gray-700 dark:border-gray-200"
-                    : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"
+                  feedType === "posts" ? "text-black dark:text-white border-b-2 border-gray-700 dark:border-gray-200" : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"
                 }`}
                 onClick={() => setFeedType("posts")}
               >
@@ -287,9 +225,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
               </div>
               <div
                 className={`flex justify-center flex-1 p-3 cursor-pointer transition-colors ${
-                  feedType === "likes"
-                    ? "text-black dark:text-white border-b-2 border-gray-700 dark:border-gray-200"
-                    : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"
+                  feedType === "likes" ? "text-black dark:text-white border-b-2 border-gray-700 dark:border-gray-200" : "text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"
                 }`}
                 onClick={() => setFeedType("likes")}
               >
@@ -300,7 +236,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
         </AnimatePresence>
       )}
 
-      {/* Posts: feedType changes the displayed feed */}
+      {/* Posts */}
       <Posts feedType={feedType} username={username} userId={user?._id} />
     </motion.div>
   );

@@ -9,17 +9,14 @@ import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-// Your custom SVG logo, adjust import path if needed:
 import XSvg from "../svgs/X";
 
 const Sidebar = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
-const backend_url = import.meta.env.VITE_BACKEND_URL;
-  // State to control sidebar collapse (desktop only)
-  const [collapsed, setCollapsed] = useState(false);
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
 
-  // Dark mode state: initialize from localStorage or system preference
+  const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
       return (
@@ -31,7 +28,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     return false;
   });
 
-  // Apply or remove dark mode class on the HTML element
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -42,12 +38,21 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     }
   }, [darkMode]);
 
-  // Logout mutation
+  // Build headers including token if exists
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
+
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
       const response = await fetch(`${backend_url}/api/auth/logout`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(),
+        credentials: "include",
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -64,11 +69,13 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     },
   });
 
-  // Fetch authenticated user data
   const { data: user } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
-      const response = await fetch(`${backend_url}/api/auth/me`);
+      const response = await fetch(`${backend_url}/api/auth/me`, {
+        headers: getHeaders(),
+        credentials: "include",
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Something went wrong");
@@ -78,49 +85,25 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     retry: false,
   });
 
-  // Navigation items
   const navItems = [
-    {
-      path: "/",
-      name: "Home",
-      icon: <MdHomeFilled className="w-6 h-6" />,
-    },
-    {
-      path: "/notifications",
-      name: "Notifications",
-      icon: <IoNotifications className="w-6 h-6" />,
-    },
-    {
-      path: user ? `/profile/${user.username}` : "/profile",
-      name: "Profile",
-      icon: <FaUser className="w-6 h-6" />,
-    },
+    { path: "/", name: "Home", icon: <MdHomeFilled className="w-6 h-6" /> },
+    { path: "/notifications", name: "Notifications", icon: <IoNotifications className="w-6 h-6" /> },
+    { path: user ? `/profile/${user.username}` : "/profile", name: "Profile", icon: <FaUser className="w-6 h-6" /> },
   ];
 
-  // Check if path is active
   const isActive = (path) => location.pathname === path;
+  const toggleSidebar = () => setCollapsed(!collapsed);
 
-  // Toggle the desktop sidebar collapse
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
-
-  /** Sticky Desktop Sidebar **/
+  /** Desktop Sidebar **/
   const desktopSidebar = (
     <motion.div
-      // Animate width for collapse/expand
       initial={{ width: collapsed ? 80 : 256 }}
       animate={{ width: collapsed ? 80 : 256 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      // Make sidebar sticky and scrollable
-      className="sticky top-0 h-screen flex flex-col bg-white dark:bg-gray-900 shadow-lg 
-                 overflow-y-auto relative"
+      className="sticky top-0 h-screen flex flex-col bg-white dark:bg-gray-900 shadow-lg overflow-y-auto relative"
     >
-      {/* Toggle Collapse Button */}
       <motion.button
-        className="absolute top-6 -right-3 bg-blue-600 text-white rounded-full p-1 z-10 hidden md:flex 
-                   items-center justify-center shadow-md hover:bg-blue-700 
-                   transition-colors duration-300"
+        className="absolute top-6 -right-3 bg-blue-600 text-white rounded-full p-1 z-10 hidden md:flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors duration-300"
         onClick={toggleSidebar}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
@@ -128,7 +111,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
         {collapsed ? <RiArrowRightSLine size={20} /> : <RiArrowLeftSLine size={20} />}
       </motion.button>
 
-      {/* Logo / Header */}
       <div className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <Link to="/" className="flex items-center">
           <motion.div whileHover={{ rotate: 360 }} transition={{ duration: 0.5 }}>
@@ -150,7 +132,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
         </Link>
       </div>
 
-      {/* Navigation Links */}
       <nav className="flex-1 py-6 px-3">
         <ul className="space-y-2">
           {navItems.map((item) => (
@@ -165,11 +146,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
               >
                 <motion.div
                   whileHover={{ rotate: isActive(item.path) ? 0 : 10 }}
-                  className={
-                    isActive(item.path)
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-500 dark:text-gray-400"
-                  }
+                  className={isActive(item.path) ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}
                 >
                   {item.icon}
                 </motion.div>
@@ -198,7 +175,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
         </ul>
       </nav>
 
-      {/* Dark Mode Toggle */}
       <div className="p-3">
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -206,22 +182,12 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
           onClick={() => setDarkMode(!darkMode)}
           className={`flex items-center w-full rounded-xl p-3 ${
             collapsed ? "justify-center" : "justify-between"
-          } transition-colors duration-300 bg-gray-100 dark:bg-gray-800 
-             text-gray-700 dark:text-gray-300`}
+          } transition-colors duration-300 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300`}
         >
-          {darkMode ? (
-            <FaSun className="w-5 h-5 text-amber-500" />
-          ) : (
-            <FaMoon className="w-5 h-5 text-indigo-500" />
-          )}
+          {darkMode ? <FaSun className="w-5 h-5 text-amber-500" /> : <FaMoon className="w-5 h-5 text-indigo-500" />}
           <AnimatePresence>
             {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="font-medium"
-              >
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-medium">
                 {darkMode ? "Light Mode" : "Dark Mode"}
               </motion.span>
             )}
@@ -229,7 +195,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
         </motion.button>
       </div>
 
-      {/* User Profile & Logout */}
       {user && (
         <div className="mt-auto p-3 border-t border-gray-200 dark:border-gray-700">
           <div className={`flex items-center ${collapsed ? "justify-center" : "space-x-3"} p-2`}>
@@ -239,7 +204,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
                 alt="Profile"
                 className="w-10 h-10 rounded-full border-2 border-blue-500"
               />
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
             </motion.div>
             <AnimatePresence>
               {!collapsed && (
@@ -252,9 +217,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {user.fullName}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    @{user.username}
-                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">@{user.username}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -267,8 +230,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
                   whileHover={{ scale: 1.2, rotate: 15 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => logout()}
-                  className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 
-                             transition-colors"
+                  className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
                 >
                   <BiLogOut className="w-5 h-5" />
                 </motion.button>
@@ -280,19 +242,16 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     </motion.div>
   );
 
-  /** Mobile Bottom Nav (includes user info, dark mode, logout) **/
+  /** Mobile Navbar **/
   const mobileNavbar = (
     <div className="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 flex flex-col">
-      {/* Main nav row */}
       <nav className="flex justify-around p-2">
         {navItems.map((item) => (
           <Link
             to={item.path}
             key={item.path}
             className={`flex flex-col items-center transition-colors duration-300 ${
-              isActive(item.path)
-                ? "text-blue-600 dark:text-blue-400"
-                : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              isActive(item.path) ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
             }`}
           >
             {item.icon}
@@ -301,10 +260,8 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
         ))}
       </nav>
 
-      {/* If user is logged in, show user info, dark mode, and logout */}
       {user && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-          {/* User avatar and name */}
           <div className="flex items-center space-x-3">
             <motion.div whileHover={{ scale: 1.1 }} className="relative">
               <img
@@ -312,34 +269,18 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
                 alt="Profile"
                 className="w-8 h-8 rounded-full border-2 border-blue-500"
               />
-              <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
             </motion.div>
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {user.fullName}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                @{user.username}
-              </p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{user.fullName}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username}</p>
             </div>
           </div>
-
-          {/* Dark mode toggle & logout buttons */}
           <div className="flex items-center space-x-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setDarkMode(!darkMode)}
-              className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300"
-            >
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setDarkMode(!darkMode)} className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300">
               {darkMode ? <FaSun /> : <FaMoon />}
             </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.2, rotate: 15 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => logout()}
-              className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
-            >
+            <motion.button whileHover={{ scale: 1.2, rotate: 15 }} whileTap={{ scale: 0.9 }} onClick={() => logout()} className="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400">
               <BiLogOut />
             </motion.button>
           </div>
@@ -350,10 +291,7 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
 
   return (
     <>
-      {/* Desktop Sidebar (sticky) */}
       <div className="hidden md:block">{desktopSidebar}</div>
-
-      {/* Mobile Bottom Navbar */}
       <div className="md:hidden">{mobileNavbar}</div>
     </>
   );

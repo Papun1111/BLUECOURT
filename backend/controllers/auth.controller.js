@@ -49,38 +49,34 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
-	try {
-		const { username, password } = req.body;
-		const user = await userModel.findOne({ username });
+  try {
+    const { username, password } = req.body;
+    const user = await userModel.findOne({ username });
 
-		// Check password only if user exists to prevent unnecessary bcrypt computation
-		if (!user) {
-			return res.status(400).json({ error: "Invalid username or password" });
-		}
+    if (!user) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
 
-		const isPasswordCorrect = await bcrypt.compare(password, user.password);
-		if (!isPasswordCorrect) {
-			return res.status(400).json({ error: "Invalid username or password" });
-		}
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
 
-		// Assuming generateTokenAndSetCookie correctly sets the cookie
-		generateTokenAndSetCookie(user._id, res);
+    // Generate token and set httpOnly cookie
+    const token = generateTokenAndSetCookie(user._id, res);
 
-		// Sending user details back to client
-		res.status(200).json({
-			_id: user._id,
-			fullName: user.fullName,
-			username: user.username,
-			email: user.email,
-			followers: user.followers,
-			following: user.following,
-			profileImg: user.profileImg,
-			coverImg: user.coverImg,
-		});
-	} catch (error) {
-		console.log("Error in login controller", error);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
+    // Return token in JSON so front-end can store it in localStorage
+    return res.status(200).json({ token, user: {
+      _id: user._id,
+      username: user.username,
+      fullName: user.fullName,
+      profileImg: user.profileImg,
+      // any other fields needed
+    }});
+  } catch (error) {
+    console.error("Error in login controller:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 const logout = async (req, res) => {

@@ -6,11 +6,24 @@ import LoadingSpinner from "./LoadingSpinner";
 
 const RightPanel = () => {
   const backend_url = import.meta.env.VITE_BACKEND_URL;
+
+  // Helper to include JWT token in headers
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
+
   const { data: suggestedUsers, isLoading } = useQuery({
     queryKey: ["suggestedUsers"],
     queryFn: async () => {
       try {
-        const res = await fetch(`${backend_url}/api/user/suggested`);
+        const res = await fetch(`${backend_url}/api/user/suggested`, {
+          headers: getHeaders(),
+          credentials: "include",
+        });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Something went wrong!");
         return data;
@@ -39,7 +52,7 @@ const RightPanel = () => {
               <RightPanelSkeleton />
             </>
           ) : (
-            suggestedUsers?.map((user) => (
+            suggestedUsers.map((user) => (
               <Link
                 to={`/profile/${user.username}`}
                 className="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 ease-out hover:scale-[1.02]"
@@ -72,11 +85,7 @@ const RightPanel = () => {
                            hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isPending}
                 >
-                  {isPending ? (
-                    <LoadingSpinner size="sm" />
-                  ) : (
-                    <span className="flex items-center gap-1">Follow</span>
-                  )}
+                  {isPending ? <LoadingSpinner size="sm" /> : <span className="flex items-center gap-1">Follow</span>}
                 </button>
               </Link>
             ))

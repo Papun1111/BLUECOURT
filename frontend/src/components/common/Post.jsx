@@ -18,11 +18,25 @@ const Post = ({ post }) => {
   const isLiked = post.likes.includes(authUser._id);
   const isMyPost = authUser._id === post.user._id;
   const formattedDate = formatPostDate(post.createdAt);
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
 
-  // Mutation logic for deleting post
+  // Helper to build headers with token
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
+
+  // Delete post mutation
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/posts/${post._id}`, { method: "DELETE" });
+      const res = await fetch(`${backend_url}/api/posts/${post._id}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+        credentials: "include",
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to delete post");
       return data;
@@ -34,28 +48,33 @@ const Post = ({ post }) => {
     onError: (error) => toast.error(error.message),
   });
 
-  // Mutation logic for liking post
+  // Like/unlike post mutation
   const { mutate: likePost, isPending: isLiking } = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/posts/like/${post._id}`, { method: "POST" });
+      const res = await fetch(`${backend_url}/api/posts/like/${post._id}`, {
+        method: "POST",
+        headers: getHeaders(),
+        credentials: "include",
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to like post");
       return data.likes;
     },
     onSuccess: () => {
-      toast.success(isLiked ? "Post unliked" : "Post liked");  
+      toast.success(isLiked ? "Post unliked" : "Post liked");
       queryClient.invalidateQueries(["posts"]);
     },
     onError: (error) => toast.error(error.message),
   });
 
-  // Mutation logic for commenting on post
+  // Comment post mutation
   const { mutate: commentPost, isPending: isCommenting } = useMutation({
     mutationFn: async () => {
       if (!comment.trim()) throw new Error("Comment cannot be empty");
-      const res = await fetch(`/api/posts/comment/${post._id}`, {
+      const res = await fetch(`${backend_url}/api/posts/comment/${post._id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(),
+        credentials: "include",
         body: JSON.stringify({ text: comment }),
       });
       const data = await res.json();
@@ -76,9 +95,7 @@ const Post = ({ post }) => {
     commentPost();
   };
 
-  const handleToggleComments = () => {
-    setShowComments(!showComments);
-  };
+  const handleToggleComments = () => setShowComments(!showComments);
 
   return (
     <motion.div
@@ -92,15 +109,11 @@ const Post = ({ post }) => {
       {/* Post Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
         <Link to={`/profile/${postOwner.username}`} className="flex items-center space-x-3 group">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.1 }}
             className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-400 dark:group-hover:ring-blue-600 transition-all duration-300"
           >
-            <img 
-              src={postOwner.profileImg || "/avatar-placeholder.png"} 
-              alt="profile"
-              className="w-full h-full object-cover"
-            />
+            <img src={postOwner.profileImg || "/avatar-placeholder.png"} alt="profile" className="w-full h-full object-cover" />
           </motion.div>
           <div className="flex flex-col">
             <span className="font-medium text-gray-800 dark:text-gray-200 text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -110,21 +123,17 @@ const Post = ({ post }) => {
           </div>
         </Link>
         {isMyPost && (
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.2, color: "#f56565" }}
             whileTap={{ scale: 0.9 }}
             className="text-gray-500 dark:text-gray-400 transition-colors duration-200"
             onClick={() => {
-              if (confirm('Are you sure you want to delete this post?')) {
+              if (confirm("Are you sure you want to delete this post?")) {
                 deletePost();
               }
             }}
           >
-            {isDeleting ? (
-              <LoadingSpinner size="sm" />
-            ) : (
-              <FaTrash className="w-4 h-4" />
-            )}
+            {isDeleting ? <LoadingSpinner size="sm" /> : <FaTrash className="w-4 h-4" />}
           </motion.button>
         )}
       </div>
@@ -133,16 +142,8 @@ const Post = ({ post }) => {
       <div className="px-4 py-3">
         <p className="text-gray-800 dark:text-gray-200 text-sm mb-3">{post.text}</p>
         {post.img && (
-          <motion.div 
-            className="relative rounded-lg overflow-hidden mb-2 max-w-md mx-auto"  // image container is smaller and centered
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-          >
-            <img
-              src={post.img}
-              className="w-full h-auto object-cover" // ensures the image scales correctly
-              alt="post content"
-            />
+          <motion.div className="relative rounded-lg overflow-hidden mb-2 max-w-md mx-auto" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+            <img src={post.img} className="w-full h-auto object-cover" alt="post content" />
           </motion.div>
         )}
       </div>
@@ -151,8 +152,7 @@ const Post = ({ post }) => {
       <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4">
-            {/* Like Button */}
-            <motion.button 
+            <motion.button
               onClick={likePost}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
@@ -161,20 +161,14 @@ const Post = ({ post }) => {
               {isLiking ? (
                 <LoadingSpinner size="sm" />
               ) : isLiked ? (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                >
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 15 }}>
                   <FaHeart className="w-5 h-5 text-pink-500" />
                 </motion.div>
               ) : (
                 <FaRegHeart className="w-5 h-5" />
               )}
             </motion.button>
-            
-            {/* Comment Button */}
-            <motion.button 
+            <motion.button
               onClick={handleToggleComments}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
@@ -182,30 +176,18 @@ const Post = ({ post }) => {
             >
               <FaRegComment className="w-5 h-5" />
             </motion.button>
-            
-            {/* Repost Button */}
-            <motion.button 
-              whileHover={{ scale: 1.2, color: "#48bb78" }}
-              whileTap={{ scale: 0.9 }}
-              className="text-gray-500 dark:text-gray-400 transition-colors duration-200"
-            >
+            <motion.button whileHover={{ scale: 1.2, color: "#48bb78" }} whileTap={{ scale: 0.9 }} className="text-gray-500 dark:text-gray-400 transition-colors duration-200">
               <BiRepost className="w-6 h-6" />
             </motion.button>
           </div>
-          
-          {/* Bookmark Button */}
-          <motion.button 
+          <motion.button
             onClick={() => setIsBookmarked(!isBookmarked)}
             whileHover={{ scale: 1.2 }}
             whileTap={{ scale: 0.9 }}
             className="text-gray-500 dark:text-gray-400 transition-colors duration-200"
           >
             {isBookmarked ? (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              >
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 15 }}>
                 <FaRegBookmark className="w-5 h-5 text-blue-500" />
               </motion.div>
             ) : (
@@ -214,70 +196,38 @@ const Post = ({ post }) => {
           </motion.button>
         </div>
 
-        {/* Likes Count */}
-        <div className="text-gray-800 dark:text-gray-200 text-xs font-medium mb-1">
-          {post.likes.length} likes
-        </div>
-
-        {/* Comments Preview */}
-        <motion.button
-          onClick={handleToggleComments}
-          className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-        >
+        <div className="text-gray-800 dark:text-gray-200 text-xs font-medium mb-1">{post.likes.length} likes</div>
+        <motion.button onClick={handleToggleComments} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
           View all {post.comments.length} comments
         </motion.button>
       </div>
 
-      {/* Comments Section (Expandable) */}
+      {/* Comments Section */}
       <AnimatePresence>
         {showComments && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden border-t border-gray-200 dark:border-gray-800"
-          >
-            {/* Comments List */}
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden border-t border-gray-200 dark:border-gray-800">
             <div className="max-h-64 overflow-y-auto p-4 space-y-3">
               {post.comments.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center text-sm">
-                  No comments yet
-                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-center text-sm">No comments yet</p>
               ) : (
                 post.comments.map((comment) => (
-                  <motion.div 
-                    key={comment._id} 
-                    className="flex items-start space-x-2"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <motion.div key={comment._id} className="flex items-start space-x-2" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
                     <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
-                      <img 
-                        src={comment.user.profileImg || "/avatar-placeholder.png"} 
-                        className="w-full h-full object-cover"
-                        alt={comment.user.username}
-                      />
+                      <img src={comment.user.profileImg || "/avatar-placeholder.png"} className="w-full h-full object-cover" alt={comment.user.username} />
                     </div>
                     <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-800 dark:text-gray-200 text-xs">
-                          {comment.user.username}
-                        </span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200 text-xs">{comment.user.username}</span>
                         <span className="text-gray-500 dark:text-gray-400 text-xs">•</span>
                         <span className="text-gray-500 dark:text-gray-400 text-xs">1d</span>
                       </div>
-                      <p className="text-gray-700 dark:text-gray-300 text-xs mt-1">
-                        {comment.text}
-                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 text-xs mt-1">{comment.text}</p>
                     </div>
                   </motion.div>
                 ))
               )}
             </div>
-            
-            {/* Comment Form */}
+
             <form onSubmit={handlePostComment} className="p-3 border-t border-gray-200 dark:border-gray-800">
               <div className="flex items-center space-x-2">
                 <input
@@ -287,7 +237,7 @@ const Post = ({ post }) => {
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                 />
-                <motion.button 
+                <motion.button
                   type="submit"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

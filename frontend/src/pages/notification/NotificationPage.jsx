@@ -13,8 +13,18 @@ import { motion } from "framer-motion";
 const NotificationPage = () => {
   const [error, setError] = useState(null);
   const queryClient = useQueryClient();
-const backend_url = import.meta.env.VITE_BACKEND_URL;
-  // Fetch notifications
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
+
+  // Utility to create headers with token if available
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
+
+  // Fetch notifications (authenticated)
   const {
     data: notifications,
     isLoading,
@@ -23,12 +33,9 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     queryKey: ["notifications"],
     queryFn: async () => {
       const res = await fetch(`${backend_url}/api/notification/get`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getHeaders(),
         credentials: "include",
       });
-
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.message || "Failed to fetch notifications");
@@ -42,17 +49,14 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     },
   });
 
-  // Delete all notifications
+  // Delete all notifications (authenticated)
   const { mutate: deleteNotifications, isLoading: isDeleting } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/notification/delete", {
+      const res = await fetch(`${backend_url}/api/notification/delete`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getHeaders(),
         credentials: "include",
       });
-
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.message || "Failed to delete notifications");
@@ -74,25 +78,21 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
     }
   };
 
-  // Framer Motion variants
+  // Motion variants unchanged
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.05,
-      },
+      transition: { when: "beforeChildren", staggerChildren: 0.05 },
     },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
   };
 
-  // Handle error state
+  // Show error fallback
   if (isError) {
     return (
       <motion.div
@@ -128,7 +128,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
       >
         <div className="flex justify-between items-center">
           <h1 className="font-bold text-xl">Notifications</h1>
-          {/* Settings menu if there are notifications */}
           {notifications?.length > 0 && (
             <div className="dropdown dropdown-end">
               <div
@@ -160,7 +159,6 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
       {/* Main content */}
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          {/* Simple spinner */}
           <motion.div
             className="rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 animate-spin"
             variants={itemVariants}
@@ -175,13 +173,11 @@ const backend_url = import.meta.env.VITE_BACKEND_URL;
           <p className="text-sm">We'll notify you when something happens!</p>
         </motion.div>
       ) : (
-        // Animate the list container
         <motion.div
           className="divide-y divide-gray-200 dark:divide-gray-700"
           variants={containerVariants}
         >
-          {notifications?.map((notification) => (
-            // Animate each item
+          {notifications.map((notification) => (
             <motion.div
               key={notification._id}
               className="p-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"

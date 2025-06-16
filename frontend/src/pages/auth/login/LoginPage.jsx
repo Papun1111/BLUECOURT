@@ -15,6 +15,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const backend_url = import.meta.env.VITE_BACKEND_URL;
+
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
       const response = await fetch(`${backend_url}/api/auth/login`, {
@@ -24,23 +25,27 @@ const LoginPage = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      const contentType = response.headers.get("Content-Type");
-      let data;
-
-      if (contentType && contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
+      const contentType = response.headers.get("Content-Type") || "";
+      if (!contentType.includes("application/json")) {
         const text = await response.text();
         throw new Error(`Unexpected response: ${text}`);
       }
 
+      const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Something went wrong during login");
       }
 
-      return data;
+      return data; // expecting { token: "...", ... }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const token = data.token;
+      if (!token) {
+        console.error("Login succeeded but no token returned");
+        return;
+      }
+      // Save token in localStorage under key "token"
+      localStorage.setItem("token", token);
       toast.success("Logged in successfully!");
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
       navigate("/");
@@ -112,9 +117,9 @@ const LoginPage = () => {
             <MdOutlineMail className="text-2xl text-blue-500 dark:text-blue-300" />
             <input
               type="text"
-              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
-              placeholder="Username"
               name="username"
+              placeholder="Username"
+              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
               onChange={handleInputChange}
               value={formData.username}
               required
@@ -128,9 +133,9 @@ const LoginPage = () => {
             <MdPassword className="text-2xl text-blue-500 dark:text-blue-300" />
             <input
               type="password"
-              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
-              placeholder="Password"
               name="password"
+              placeholder="Password"
+              className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
               onChange={handleInputChange}
               value={formData.password}
               required

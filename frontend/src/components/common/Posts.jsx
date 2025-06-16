@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-
 const Posts = ({ feedType, username, userId }) => {
-   const backend_url = import.meta.env.VITE_BACKEND_URL;
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
+
   const getPostEndpoint = () => {
     switch (feedType) {
       case "forYou":
@@ -18,11 +18,19 @@ const Posts = ({ feedType, username, userId }) => {
       case "likes":
         return `${backend_url}/api/posts/likes/${userId}`;
       default:
-        return `${backend_url}}/api/posts/all`;
+        return `${backend_url}/api/posts/all`;
     }
   };
 
   const POST_ENDPOINT = getPostEndpoint();
+
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
 
   const {
     data: posts,
@@ -30,18 +38,17 @@ const Posts = ({ feedType, username, userId }) => {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: ["posts"],
+    queryKey: ["posts", feedType, username, userId],
     queryFn: async () => {
-      try {
-        const res = await fetch(POST_ENDPOINT);
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Something went wrong");
-        }
-        return data;
-      } catch (error) {
-        throw new Error(error);
+      const res = await fetch(POST_ENDPOINT, {
+        headers: getHeaders(),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
       }
+      return data;
     },
   });
 
@@ -55,7 +62,7 @@ const Posts = ({ feedType, username, userId }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ duration: 0.3 }}
-      className="w-full px-2 py-4"  // Full width container with minimal horizontal padding
+      className="w-full px-2 py-4"
     >
       <AnimatePresence>
         {(isLoading || isRefetching) && (

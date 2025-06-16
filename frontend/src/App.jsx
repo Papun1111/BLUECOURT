@@ -11,21 +11,25 @@ import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 
 function App() {
-   const backend_url = import.meta.env.VITE_BACKEND_URL;
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
+
   const { data: authUser, isLoading } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
-      try {
-        const res = await fetch(`${backend_url}/api/auth/me`);
-        const data = await res.json();
-        if (data.error) return null;
-        if (!res.ok) {
-          throw new Error(data.error || "Something went wrong");
-        }
-        return data;
-      } catch (error) {
-        throw new Error(error);
-      }
+      const token = localStorage.getItem("token");
+      const headers = token
+        ? { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
+        : { "Content-Type": "application/json" };
+
+      const res = await fetch(`${backend_url}/api/auth/me`, {
+        headers,
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) return null;
+
+      return data;
     },
     retry: false,
   });
@@ -44,8 +48,14 @@ function App() {
       <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
         <Routes>
           <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-          <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-          <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
+          <Route
+            path="/login"
+            element={!authUser ? <LoginPage /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/signup"
+            element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
+          />
           <Route
             path="/notifications"
             element={authUser ? <NotificationPage /> : <Navigate to="/login" />}
