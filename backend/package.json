@@ -2,7 +2,7 @@
     "name": "blue-court",
     "version": "1.0.0",
     "description": "",
-    "main": "backend/server.js",
+    "main": "server.js",
     "scripts": {
         "dev":"nodemon server.js",
         "start": "node server.js"
