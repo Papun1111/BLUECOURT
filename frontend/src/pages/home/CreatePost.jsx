@@ -4,9 +4,10 @@ import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import backend_url from "../../config";
+
 
 const CreatePost = () => {
+     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const [text, setText] = useState("");
     const [img, setImg] = useState(null);
     const imgRef = useRef(null);

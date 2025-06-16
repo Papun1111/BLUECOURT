@@ -3,9 +3,10 @@ import PostSkeleton from "../skeletons/PostSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import backend_url from "../../config";
+
 
 const Posts = ({ feedType, username, userId }) => {
+   const backend_url = import.meta.env.VITE_BACKEND_URL;
   const getPostEndpoint = () => {
     switch (feedType) {
       case "forYou":
