@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import backend_url from "../../../config";
+
 // Icons
 import { MdOutlineMail, MdPassword } from "react-icons/md";
 
@@ -17,7 +17,7 @@ const LoginPage = () => {
 
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: async ({ username, password }) => {
-      const response = await fetch(`${backend_url}/api/auth/login`, {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

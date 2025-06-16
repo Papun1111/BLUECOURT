@@ -7,7 +7,6 @@ import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingSpinner from "./LoadingSpinner";
 import { formatPostDate } from "../../utils/date";
-import backend_url from "../../config";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
@@ -23,7 +22,7 @@ const Post = ({ post }) => {
   // Mutation logic for deleting post
   const { mutate: deletePost, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${backend_url}/api/posts/${post._id}`, { method: "DELETE" });
+      const res = await fetch(`/api/posts/${post._id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to delete post");
       return data;

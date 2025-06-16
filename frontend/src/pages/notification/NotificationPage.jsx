@@ -9,7 +9,6 @@ import { FaUser, FaHeart } from "react-icons/fa6";
 
 // Framer Motion
 import { motion } from "framer-motion";
-import backend_url from "../../config";
 
 const NotificationPage = () => {
   const [error, setError] = useState(null);
@@ -23,7 +22,7 @@ const NotificationPage = () => {
   } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const res = await fetch(`${backend_url}/api/notification/get`, {
+      const res = await fetch("/api/notification/get", {
         headers: {
           "Content-Type": "application/json",
         },

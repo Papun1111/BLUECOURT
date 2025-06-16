@@ -13,7 +13,6 @@ import { POSTS } from "../../utils/db/dummy";
 import { formatMemberSinceDate } from "../../utils/date";
 import useFollow from "../../hooks/useFollow";
 import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
-import backend_url from "../../config";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -36,7 +35,7 @@ const ProfilePage = () => {
   } = useQuery({
     queryKey: ["userProfile", username],
     queryFn: async () => {
-      const res = await fetch(`${backend_url}/api/user/profile/${username}`);
+      const res = await fetch(`/api/user/profile/${username}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Something went wrong");

@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 
 // Your custom SVG logo, adjust import path if needed:
 import XSvg from "../svgs/X";
-import backend_url from "../../config";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -46,7 +45,7 @@ const Sidebar = () => {
   // Logout mutation
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`${backend_url}/api/auth/logout`, {
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
