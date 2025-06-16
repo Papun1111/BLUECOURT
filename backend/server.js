@@ -16,11 +16,10 @@ cloudinary.config({
   api_key:process.env.API_KEY,
   api_secret:process.env.API_SECRET
 });
-const __dirname = path.resolve();
+
 const url=process.env.MONGO_URL;
 const app = express();
-app.use(express.json());
-app.use(cors());
+
 const port = process.env.PORT || 8000 ;
 const connectDb=async()=>{
   try {
@@ -42,11 +41,8 @@ app.use("/api/auth",authRoutes);
 app.use("/api/user",userRouter);
 app.use("/api/posts",postRouter);
 app.use("/api/notification",notificationRouter)
-app.use(express.static(path.join(__dirname, "frontend", "dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
-});
+
 
 app.listen(port, () => {
   console.log(`Running on port ${port}`);
