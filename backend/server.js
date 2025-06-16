@@ -24,7 +24,7 @@ cloudinary.config({
 // Initialize app
 const app = express();
 app.use(cors({
-  origin: 'https://bluecourt.vercel.app',
+  origin: 'https://bluecourt.onrender.com',
   credentials: true
 }));
 
