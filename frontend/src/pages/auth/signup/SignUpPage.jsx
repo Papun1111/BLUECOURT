@@ -18,10 +18,10 @@ const SignUpPage = () => {
     fullName: "",
     password: "",
   });
-
+const backend_url = import.meta.env.VITE_BACKEND_URL;
   const { mutate, isError, error, isLoading } = useMutation({
     mutationFn: async (userData) => {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch(`${backend_url}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),

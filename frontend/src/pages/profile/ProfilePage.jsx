@@ -25,7 +25,7 @@ const ProfilePage = () => {
   const { username } = useParams();
   const { follow, isPending } = useFollow();
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
-
+const backend_url = import.meta.env.VITE_BACKEND_URL;
   const {
     data: user,
     isLoading,
@@ -35,7 +35,7 @@ const ProfilePage = () => {
   } = useQuery({
     queryKey: ["userProfile", username],
     queryFn: async () => {
-      const res = await fetch(`/api/user/profile/${username}`);
+      const res = await fetch(`${backend_url}/api/user/profile/${username}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Something went wrong");

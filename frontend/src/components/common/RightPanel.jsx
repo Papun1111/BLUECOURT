@@ -5,11 +5,12 @@ import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import LoadingSpinner from "./LoadingSpinner";
 
 const RightPanel = () => {
+  const backend_url = import.meta.env.VITE_BACKEND_URL;
   const { data: suggestedUsers, isLoading } = useQuery({
     queryKey: ["suggestedUsers"],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/user/suggested");
+        const res = await fetch(`${backend_url}/api/user/suggested`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Something went wrong!");
         return data;

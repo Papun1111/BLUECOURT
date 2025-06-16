@@ -3,11 +3,11 @@ import toast from "react-hot-toast";
 
 const useFollow = () => {
 	const queryClient = useQueryClient();
-
+const backend_url = import.meta.env.VITE_BACKEND_URL;
 	const { mutate: follow, isPending } = useMutation({
 		mutationFn: async (userId) => {
 			try {
-				const res = await fetch(`/api/user/follow/${userId}`, {
+				const res = await fetch(`${backend_url}/api/user/follow/${userId}`, {
 					method: "POST",
 				});
 

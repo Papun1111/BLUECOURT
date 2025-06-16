@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 const NotificationPage = () => {
   const [error, setError] = useState(null);
   const queryClient = useQueryClient();
-
+const backend_url = import.meta.env.VITE_BACKEND_URL;
   // Fetch notifications
   const {
     data: notifications,
@@ -22,7 +22,7 @@ const NotificationPage = () => {
   } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const res = await fetch("/api/notification/get", {
+      const res = await fetch(`${backend_url}/api/notification/get`, {
         headers: {
           "Content-Type": "application/json",
         },

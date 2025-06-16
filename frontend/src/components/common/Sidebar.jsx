@@ -15,7 +15,7 @@ import XSvg from "../svgs/X";
 const Sidebar = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
-
+const backend_url = import.meta.env.VITE_BACKEND_URL;
   // State to control sidebar collapse (desktop only)
   const [collapsed, setCollapsed] = useState(false);
 
@@ -45,7 +45,7 @@ const Sidebar = () => {
   // Logout mutation
   const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/auth/logout", {
+      const response = await fetch(`${backend_url}/api/auth/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -68,7 +68,7 @@ const Sidebar = () => {
   const { data: user } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
-      const response = await fetch("/api/auth/me");
+      const response = await fetch(`${backend_url}/api/auth/me`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Something went wrong");

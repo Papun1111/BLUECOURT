@@ -3,11 +3,11 @@ import toast from "react-hot-toast";
 
 const useUpdateUserProfile = () => {
 	const queryClient = useQueryClient();
-
+const backend_url = import.meta.env.VITE_BACKEND_URL;
 	const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useMutation({
 		mutationFn: async (formData) => {
 			try {
-				const res = await fetch(`/api/user/update`, {
+				const res = await fetch(`${backend_url}/api/user/update`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
