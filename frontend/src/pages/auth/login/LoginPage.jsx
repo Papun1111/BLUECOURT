@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; 
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -12,7 +12,7 @@ import XSvg from "../../../components/svgs/X";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { mutate, isLoading, isError, error } = useMutation({
@@ -23,11 +23,22 @@ const LoginPage = () => {
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Something went wrong during login");
+
+      const contentType = response.headers.get("Content-Type");
+      let data;
+
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(`Unexpected response: ${text}`);
       }
-      return response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong during login");
+      }
+
+      return data;
     },
     onSuccess: () => {
       toast.success("Logged in successfully!");
@@ -49,7 +60,6 @@ const LoginPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Framer Motion variants
   const containerVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -65,7 +75,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left Section (Graphic) - Shown on md+ screens */}
       <motion.div
         className="hidden lg:flex flex-1 items-center justify-center bg-blue-900 dark:bg-gray-800"
         initial={{ opacity: 0 }}
@@ -75,7 +84,6 @@ const LoginPage = () => {
         <XSvg className="w-2/3 fill-current text-white" />
       </motion.div>
 
-      {/* Right Section (Login Form) */}
       <motion.div
         className="flex-1 flex flex-col items-center justify-center bg-blue-50 dark:bg-gray-900 p-6"
         variants={containerVariants}
@@ -87,7 +95,6 @@ const LoginPage = () => {
           onSubmit={handleSubmit}
           variants={itemVariants}
         >
-          {/* Logo for smaller screens */}
           <div className="flex justify-center lg:hidden">
             <XSvg className="w-20 fill-current text-blue-500 dark:text-blue-300" />
           </div>
