@@ -47,27 +47,9 @@ const Sidebar = () => {
     };
   };
 
-  const { mutate: logout } = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`${backend_url}/api/auth/logout`, {
-        method: "POST",
-        headers: getHeaders(),
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Something went wrong");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast.success("Logged out successfully!");
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to log out.");
-    },
-  });
+  const logout=()=>{
+    localStorage.removeItem('token');
+  }
 
   const { data: user } = useQuery({
     queryKey: ["authUser"],

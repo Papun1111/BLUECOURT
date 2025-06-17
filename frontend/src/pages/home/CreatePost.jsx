@@ -15,6 +15,13 @@ const CreatePost = () => {
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
 
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+  };
+
   const { mutate: createPost, isLoading: isPending, isError, error } = useMutation({
     mutationFn: async ({ text, image }) => {
       const formData = new FormData();
@@ -24,6 +31,7 @@ const CreatePost = () => {
       const res = await fetch(`${backend_url}/api/posts/create`, {
         method: "POST",
         body: formData,
+        headers: getHeaders(), // Only Authorization; no Content-Type!
         credentials: "include",
       });
 
