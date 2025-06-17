@@ -3,36 +3,44 @@ import userModel from "../models/user.model.js";
 import { v2 as cloudinary } from "cloudinary";
 import Notification from "../models/notification.model.js";
 const createPost = async (req, res) => {
-	try {
-		const { text } = req.body;
-		let { img } = req.body;
-		const userId = req.user._id.toString();
+  try {
+    const { text } = req.body;
+    const userId = req.user._id.toString();
 
-		const user = await userModel.findById(userId);
-		if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-		if (!text && !img) {
-			return res.status(400).json({ error: "Post must have text or image" });
-		}
+    let img;
 
-		if (img) {
-			const uploadedResponse = await cloudinary.uploader.upload(img);
-			img = uploadedResponse.secure_url;
-		}
+    // If image file is provided
+    if (req.file) {
+      const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const uploadedResponse = await cloudinary.uploader.upload(base64Image, {
+        folder: "bluecourt-posts",
+      });
+      img = uploadedResponse.secure_url;
+    }
 
-		const newPost = new Post({
-			user: userId,
-			text,
-			img,
-		});
+    // Ensure at least text or image exists
+    if (!text && !img) {
+      return res.status(400).json({ error: "Post must have text or image" });
+    }
 
-		await newPost.save();
-		res.status(201).json(newPost);
-	} catch (error) {
-		res.status(500).json({ error: "Internal server error" });
-		console.log("Error in createPost controller: ", error);
-	}
+    const newPost = new Post({
+      user: userId,
+      text,
+      img,
+    });
+
+    await newPost.save();
+    res.status(201).json(newPost);
+  } catch (error) {
+    console.error("Error in createPost controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
+
+export default createPost;
 const deletePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
