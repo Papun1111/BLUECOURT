@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser, FaMoon, FaSun } from "react-icons/fa";
@@ -15,7 +15,7 @@ const Sidebar = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const backend_url = import.meta.env.VITE_BACKEND_URL;
-
+  const navigate=useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
@@ -49,6 +49,11 @@ const Sidebar = () => {
 
   const logout=()=>{
     localStorage.removeItem('token');
+    toast.success(
+
+      "Logout Successful"
+    );
+    navigate("/login");
   }
 
   const { data: user } = useQuery({
