@@ -1,17 +1,7 @@
 import express from 'express';
 const postRouter = express.Router();
 import multer from 'multer';
-const upload = multer({
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
-  storage: multer.memoryStorage(),
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed!"), false);
-    }
-  },
-});
+const upload = multer({ limits: { fileSize: 50 * 1024 * 1024 } });
 import { createPost, deletePost, commentOnPost, likeUnlikePost, getAllPosts, getLikedPosts, getFollowingPosts, getUserPosts } from '../controllers/post.controller.js';
 
 import { protectRoute } from '../middleware/protectRoute.js';
